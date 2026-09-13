@@ -1,4 +1,7 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ClerkProvider, Show, SignIn, SignUp, useClerk, useUser } from '@clerk/react';
+import { publishableKeyFromHost } from '@clerk/react/internal';
+import { shadcn } from '@clerk/themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,10 +12,71 @@ import {
   Menu, MessageSquare, MoreHorizontal, Network, PanelLeft, Plus, Search, Send,
   Settings, Sparkles, Star, Tags, Target, ThumbsUp, Upload, UserRound, X, Zap,
 } from 'lucide-react';
-import { Link, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Link, Redirect, Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || '/'
+    : path;
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: 'clerk',
+  options: {
+    logoPlacement: 'inside' as const,
+    logoLinkUrl: basePath || '/',
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: '#c6a54b',
+    colorForeground: '#202838',
+    colorMutedForeground: '#6f756f',
+    colorDanger: '#a64e45',
+    colorBackground: '#fbfaf7',
+    colorInput: '#f5f1e7',
+    colorInputForeground: '#202838',
+    colorNeutral: '#d8d2c5',
+    fontFamily: 'DM Sans, sans-serif',
+    borderRadius: '0.5rem',
+  },
+  elements: {
+    rootBox: 'w-full flex justify-center',
+    cardBox: 'bg-[#fbfaf7] rounded-2xl w-[440px] max-w-full overflow-hidden',
+    card: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    headerTitle: 'font-display text-[#202838]',
+    headerSubtitle: 'text-[#6f756f]',
+    socialButtonsBlockButtonText: 'text-[#202838]',
+    formFieldLabel: 'text-[#202838]',
+    footerActionLink: 'text-[#896c1c]',
+    footerActionText: 'text-[#6f756f]',
+    dividerText: 'text-[#6f756f]',
+    identityPreviewEditButton: 'text-[#896c1c]',
+    formFieldSuccessText: 'text-[#46705f]',
+    alertText: 'text-[#8d463e]',
+    logoBox: 'mb-5',
+    logoImage: 'max-h-10',
+    socialButtonsBlockButton: 'border-[#d8d2c5] bg-[#f5f1e7] hover:bg-[#eee8da]',
+    formButtonPrimary: 'bg-[#202838] text-[#fbfaf7] hover:bg-[#2c374a]',
+    formFieldInput: 'border-[#d8d2c5] bg-[#f5f1e7] text-[#202838] focus:border-[#b89437]',
+    footerAction: 'border-t border-[#e3ddd0] pt-5',
+    dividerLine: 'bg-[#e3ddd0]',
+    alert: 'border-[#e5c9c2] bg-[#f8e9e4]',
+    otpCodeFieldInput: 'border-[#d8d2c5] bg-[#f5f1e7] text-[#202838]',
+    formFieldRow: 'mb-4',
+    main: 'px-1',
+  },
+};
 
 type Paper = {
   id: string; title: string; authors: string[]; year: number; venue: string; pages: string;
@@ -80,6 +144,10 @@ function EmptyState({ title, detail, action }: { title: string; detail: string; 
 function Shell({ children, papers, selectedId, setSelectedId }: { children: ReactNode; papers: Paper[]; selectedId: string; setSelectedId: (id: string) => void }) {
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { signOut } = useClerk();
+  const { user } = useUser();
+  const displayName = user?.fullName || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'Researcher';
+  const initials = displayName.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   const selected = papers.find((p) => p.id === selectedId) ?? papers[0];
   return <div className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
     <aside className={cn('fixed inset-y-0 left-0 z-40 flex w-[250px] flex-col border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar))] px-4 py-5 transition-transform duration-300 md:translate-x-0', mobileOpen ? 'translate-x-0' : '-translate-x-full')}>
@@ -88,10 +156,10 @@ function Shell({ children, papers, selectedId, setSelectedId }: { children: Reac
       <nav className="mt-2 space-y-1" aria-label="Primary navigation">{navItems.map(({ href, label, icon: Icon, count, mark }) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} data-testid={`link-nav-${label.toLowerCase().replaceAll(' ', '-')}`} className={cn('group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors', location === href ? 'bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-foreground))]' : 'text-[#aab2bf] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-foreground))]')}><Icon className={cn('h-4 w-4', location === href ? 'text-[#e3c15e]' : 'text-[#7f8999] group-hover:text-[#d4b85d]')} /><span className="flex-1">{label}</span>{count && <span className="font-mono-ui text-[10px] text-[#7f8999]">{count}</span>}{mark && <span className="rounded bg-[#d9b653] px-1.5 py-0.5 text-[9px] font-bold uppercase text-[#252d3c]">{mark}</span>}</Link>)}</nav>
       <div className="mt-8 px-3 font-mono-ui text-[9px] uppercase tracking-[.18em] text-[#7f8999]">Workspace</div>
       <nav className="mt-2 space-y-1"><Link href="/settings" onClick={() => setMobileOpen(false)} data-testid="link-nav-settings" className={cn('flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-[#aab2bf] transition-colors hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-foreground))]', location === '/settings' && 'bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-foreground))]')}><Settings className="h-4 w-4 text-[#7f8999]" />Settings</Link></nav>
-      <div className="mt-auto rounded-lg border border-[#343e4d] bg-[#202a38] p-3"><div className="flex items-center gap-2"><div className="grid h-7 w-7 place-items-center rounded-full bg-[#cfaf55] text-xs font-bold text-[#222a36]">AK</div><div className="min-w-0"><div className="truncate text-xs font-semibold text-[#e3e7ee]">Amina K.</div><div className="truncate text-[10px] text-[#8995a6]">PhD Researcher</div></div><ChevronDown className="ml-auto h-3.5 w-3.5 text-[#8995a6]" /></div></div>
+       <button type="button" onClick={() => signOut({ redirectUrl: basePath || '/' })} className="mt-auto rounded-lg border border-[#343e4d] bg-[#202a38] p-3 text-left transition-colors hover:border-[#5f6b7a]"><div className="flex items-center gap-2"><div className="grid h-7 w-7 place-items-center rounded-full bg-[#cfaf55] text-xs font-bold text-[#222a36]">{initials}</div><div className="min-w-0"><div className="truncate text-xs font-semibold text-[#e3e7ee]">{displayName}</div><div className="truncate text-[10px] text-[#8995a6]">Sign out</div></div><ChevronDown className="ml-auto h-3.5 w-3.5 rotate-180 text-[#8995a6]" /></div></button>
     </aside>
     {mobileOpen && <button aria-label="Close navigation" data-testid="button-close-navigation" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-[#18202c]/50 md:hidden" />}
-    <div className="md:pl-[250px]"><header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-5 backdrop-blur md:px-9"><div className="flex items-center gap-3"><button onClick={() => setMobileOpen(true)} data-testid="button-open-navigation" className="rounded p-1 text-[hsl(var(--muted-foreground))] md:hidden"><Menu className="h-5 w-5" /></button><button onClick={() => setLocation('/library')} data-testid="button-global-search" className="flex h-9 w-[min(280px,48vw)] items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-left text-xs text-[hsl(var(--muted-foreground))] transition-colors hover:border-[#c5a64f]"><Search className="h-4 w-4" /><span>Search your library</span><span className="ml-auto hidden font-mono-ui text-[10px] text-[#9da2ad] sm:block">⌘ K</span></button></div><div className="flex items-center gap-2"><button data-testid="button-help" className="hidden rounded-md p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] md:block"><CircleHelp className="h-4 w-4" /></button><div className="h-5 w-px bg-[hsl(var(--border))]" /><button data-testid="button-user-menu" className="flex items-center gap-2 rounded-md p-1.5 hover:bg-[hsl(var(--muted))]"><div className="grid h-7 w-7 place-items-center rounded-full bg-[#d9b653] text-[10px] font-bold text-[#263042]">AK</div><span className="hidden text-xs font-semibold md:block">Amina K.</span></button></div></header><main className="mx-auto max-w-[1400px] px-5 py-8 md:px-9 lg:px-12">{children}</main></div>
+     <div className="md:pl-[250px]"><header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-5 backdrop-blur md:px-9"><div className="flex items-center gap-3"><button onClick={() => setMobileOpen(true)} data-testid="button-open-navigation" className="rounded p-1 text-[hsl(var(--muted-foreground))] md:hidden"><Menu className="h-5 w-5" /></button><button onClick={() => setLocation('/library')} data-testid="button-global-search" className="flex h-9 w-[min(280px,48vw)] items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-left text-xs text-[hsl(var(--muted-foreground))] transition-colors hover:border-[#c5a64f]"><Search className="h-4 w-4" /><span>Search your library</span><span className="ml-auto hidden font-mono-ui text-[10px] text-[#9da2ad] sm:block">⌘ K</span></button></div><div className="flex items-center gap-2"><button data-testid="button-help" className="hidden rounded-md p-2 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))] md:block"><CircleHelp className="h-4 w-4" /></button><div className="h-5 w-px bg-[hsl(var(--border))]" /><button onClick={() => signOut({ redirectUrl: basePath || '/' })} data-testid="button-user-menu" className="flex items-center gap-2 rounded-md p-1.5 hover:bg-[hsl(var(--muted))]"><div className="grid h-7 w-7 place-items-center rounded-full bg-[#d9b653] text-[10px] font-bold text-[#263042]">{initials}</div><span className="hidden text-xs font-semibold md:block">{displayName}</span></button></div></header><main className="mx-auto max-w-[1400px] px-5 py-8 md:px-9 lg:px-12">{children}</main></div>
   </div>;
 }
 
@@ -152,10 +220,68 @@ function RouterView({ papers, selectedId, setSelectedId, toggleFavorite }: { pap
   return <Shell papers={papers} selectedId={selectedPaper.id} setSelectedId={setSelectedId}><Switch><Route path="/"><Dashboard papers={papers} onSelect={openReader} toggleFavorite={toggleFavorite} /></Route><Route path="/dashboard"><Dashboard papers={papers} onSelect={openReader} toggleFavorite={toggleFavorite} /></Route><Route path="/library"><LibraryPage papers={papers} onSelect={openReader} toggleFavorite={toggleFavorite} /></Route><Route path="/reader"><ReaderPage paper={selectedPaper} toggleFavorite={toggleFavorite} /></Route><Route path="/intelligence"><IntelligencePage /></Route><Route path="/citations"><CitationsPage papers={papers} /></Route><Route path="/chat"><ChatPage papers={papers} /></Route><Route path="/settings"><SettingsPage /></Route><Route component={NotFound} /></Switch></Shell>;
 }
 
-function App() {
-  const [papers, setPapers] = useState(papersSeed); const [selectedId, setSelectedId] = useState('p1');
+function HomeLanding() {
+  return <main className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"><div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col px-6 py-6 md:px-10"><header className="flex items-center justify-between"><Link href="/" className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-md bg-[#e2bf5a] text-[#202838]"><Network className="h-5 w-5" strokeWidth={2.5} /></span><span><span className="block font-display text-lg">ResearchPilot</span><span className="block font-mono-ui text-[9px] uppercase tracking-[.16em] text-[hsl(var(--muted-foreground))]">evidence workspace</span></span></Link><div className="flex items-center gap-2"><Link href="/sign-in" className="rounded-md px-3 py-2 text-sm font-semibold text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">Sign in</Link><Link href="/sign-up" className="rounded-md bg-[hsl(var(--primary))] px-3 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] hover:opacity-90">Create account</Link></div></header><section className="grid flex-1 items-center gap-12 py-20 lg:grid-cols-[1.05fr_.95fr]"><div><div className="mb-4 font-mono-ui text-[10px] uppercase tracking-[.18em] text-[#92701d]">A clearer way to do the work</div><h1 className="max-w-3xl font-display text-5xl leading-[1.05] md:text-7xl">Your research, with a <span className="text-[#9a7822]">stronger thread.</span></h1><p className="mt-6 max-w-xl text-base leading-7 text-[hsl(var(--muted-foreground))] md:text-lg">Organize the papers that matter, read the evidence in context, and see what your library is trying to tell you next.</p><div className="mt-8 flex flex-wrap items-center gap-3"><Link href="/sign-up" className="inline-flex h-11 items-center gap-2 rounded-md bg-[hsl(var(--primary))] px-5 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-sm hover:opacity-90">Start your workspace <ArrowUpRight className="h-4 w-4" /></Link><Link href="/sign-in" className="inline-flex h-11 items-center rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-5 text-sm font-semibold hover:border-[#c5a64f]">Sign in to continue</Link></div><div className="mt-10 flex flex-wrap gap-6 text-xs text-[hsl(var(--muted-foreground))]"><span className="flex items-center gap-2"><Check className="h-4 w-4 text-[#9a7822]" />Evidence-first workspace</span><span className="flex items-center gap-2"><Check className="h-4 w-4 text-[#9a7822]" />Built for serious reading</span></div></div><div className="relative rounded-xl border border-[#d8b65f] bg-[#f6edcf] p-5 shadow-[0_24px_60px_rgba(45,39,25,.10)] md:p-7"><div className="absolute -right-3 -top-3 rounded-md bg-[#202838] px-3 py-2 font-mono-ui text-[10px] uppercase tracking-[.12em] text-[#f6edcf]">Your evidence, distilled</div><div className="rounded-lg border border-[#dfc878] bg-[#fbf4df] p-5"><div className="flex items-center justify-between"><span className="font-mono-ui text-[10px] uppercase tracking-[.15em] text-[#80651e]">Research pulse</span><Zap className="h-4 w-4 text-[#9b7921]" /></div><h2 className="mt-5 font-display text-2xl leading-8 text-[#283344]">The strongest gap is hiding between attention and method.</h2><p className="mt-4 text-sm leading-6 text-[#756339]">Six studies mention deep reading. Only two measure what happens after the session ends.</p><div className="mt-6 border-t border-[#dfc878] pt-4"><div className="flex items-center justify-between text-[10px] text-[#806d3d]"><span>Connected evidence</span><span>6 sources</span></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e8d9a9]"><div className="h-full w-[78%] rounded-full bg-[#b9932f]" /></div></div></div></div></section><footer className="border-t border-[hsl(var(--border))] py-5 text-xs text-[hsl(var(--muted-foreground))]">ResearchPilot AI · A focused workspace for evidence, ideas, and the next useful question.</footer></div></main>;
+}
+
+function SignInPage() {
+  return <div className="paper-grain flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] px-4 py-10"><div className="w-full max-w-[440px]"><Link href="/" className="mb-6 flex items-center justify-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-md bg-[#e2bf5a] text-[#202838]"><Network className="h-5 w-5" /></span><span className="font-display text-xl">ResearchPilot</span></Link><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></div></div>;
+}
+
+function SignUpPage() {
+  return <div className="paper-grain flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] px-4 py-10"><div className="w-full max-w-[440px]"><Link href="/" className="mb-6 flex items-center justify-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-md bg-[#e2bf5a] text-[#202838]"><Network className="h-5 w-5" /></span><span className="font-display text-xl">ResearchPilot</span></Link><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></div></div>;
+}
+
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const previousUserId = useRef<string | null | undefined>(undefined);
+  useEffect(() => addListener(({ user }) => {
+    const userId = user?.id ?? null;
+    if (previousUserId.current !== undefined && previousUserId.current !== userId) queryClient.clear();
+    previousUserId.current = userId;
+  }), [addListener]);
+  return null;
+}
+
+function AuthRouter() {
+  const [, setLocation] = useLocation();
+  const [papers, setPapers] = useState(papersSeed);
+  const [selectedId, setSelectedId] = useState('p1');
   const toggleFavorite = (id: string) => setPapers((items) => items.map((paper) => paper.id === id ? { ...paper, favorite: !paper.favorite } : paper));
-  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><ErrorBoundary resetKey={location.pathname}><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></ErrorBoundary></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
+  return <ClerkProvider
+    publishableKey={clerkPubKey}
+    proxyUrl={clerkProxyUrl}
+    appearance={clerkAppearance}
+    signInUrl={`${basePath}/sign-in`}
+    signUpUrl={`${basePath}/sign-up`}
+    localization={{ signIn: { start: { title: 'Welcome back', subtitle: 'Sign in to continue your research' } }, signUp: { start: { title: 'Create your workspace', subtitle: 'Start building your evidence base' } } }}
+    routerPush={(to) => setLocation(stripBase(to))}
+    routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+  >
+    <QueryClientProvider client={queryClient}>
+      <ClerkQueryClientCacheInvalidator />
+      <Switch>
+        <Route path="/sign-in/*?" component={SignInPage} />
+        <Route path="/sign-up/*?" component={SignUpPage} />
+        <Route path="/">
+          <Show when="signed-in"><Redirect to="/dashboard" /></Show>
+          <Show when="signed-out"><HomeLanding /></Show>
+        </Route>
+        <Route path="/dashboard"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route path="/library"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route path="/reader"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route path="/intelligence"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route path="/citations"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route path="/chat"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route path="/settings"><Show when="signed-in"><RouterView papers={papers} selectedId={selectedId} setSelectedId={setSelectedId} toggleFavorite={toggleFavorite} /></Show><Show when="signed-out"><Redirect to="/" /></Show></Route>
+        <Route component={NotFound} />
+      </Switch>
+    </QueryClientProvider>
+  </ClerkProvider>;
+}
+
+function App() {
+  return <TooltipProvider><WouterRouter base={basePath}><ErrorBoundary resetKey={location.pathname}><AuthRouter /></ErrorBoundary></WouterRouter><Toaster /></TooltipProvider>;
 }
 
 export default App;
