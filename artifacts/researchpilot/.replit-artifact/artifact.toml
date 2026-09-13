@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "ResearchPilot AI"
+description = "A professional research intelligence workspace for organizing papers, understanding evidence, discovering research gaps, and building citation-ready work from a personal library."
+version = "1.0.0"
+id = "artifacts/researchpilot"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25757
+
+[services.development]
+run = "pnpm --filter @workspace/researchpilot run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/researchpilot", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/researchpilot/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25757"
+BASE_PATH = "/"

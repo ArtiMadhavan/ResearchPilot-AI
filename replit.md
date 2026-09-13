@@ -1,6 +1,6 @@
-# [Project name]
+# ResearchPilot AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+ResearchPilot AI is a research intelligence workspace for organizing papers, reading evidence, discovering research gaps, and preparing citations.
 
 ## Run & Operate
 
@@ -22,23 +22,38 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/researchpilot/` — primary React + Vite product surface
+- `artifacts/researchpilot/src/App.tsx` — local product state, seeded research content, routes, and interactions
+- `artifacts/researchpilot/src/index.css` — ResearchPilot visual system and responsive layout rules
+- `lib/api-spec/openapi.yaml` — shared API contract source of truth
+- `artifacts/api-server/` — shared Express API service
+- `artifacts/mockup-sandbox/` — reusable design preview surface
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first product surface is frontend-first so the core research workflow can be evaluated without external credentials or setup.
+- Seeded content is intentionally shaped like an active research workspace, making dashboard, library, reader, intelligence, citations, and chat states useful on first load.
+- ResearchPilot uses an ink-and-parchment visual language with gold evidence accents to distinguish the product from generic dashboard templates.
+- The shared API and database packages remain available for the next persistence phase; the current interface keeps local interactions fast and demonstrable.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard overview of reading progress, evidence threads, saved citations, and research activity
+- Searchable and filterable paper library with favorites, paper details, and tags
+- Paper reader with extracted evidence, notes, and reading progress
+- Research intelligence workspace for gaps, comparisons, and roadmap ideas
+- Citation studio with APA, IEEE, and MLA formatting plus copy/export actions
+- Grounded chat workspace for asking questions against the library
+- Workspace settings with appearance, notification, and citation preferences
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The frontend is served by the managed `artifacts/researchpilot: web` workflow and expects workflow-provided `PORT` and `BASE_PATH`.
+- When backend contracts are added, update `lib/api-spec/openapi.yaml` first and regenerate the typed clients before wiring UI requests.
 
 ## Pointers
 
