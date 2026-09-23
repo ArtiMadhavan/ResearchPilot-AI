@@ -1,8 +1,16 @@
-<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none">
   <rect width="96" height="96" rx="20" fill="#E2BF5A"/>
-  <path d="M25 31.5C25 28.4624 27.4624 26 30.5 26H65.5C68.5376 26 71 28.4624 71 31.5V48.5C71 51.5376 68.5376 54 65.5 54H30.5C27.4624 54 25 51.5376 25 48.5V31.5Z" stroke="#202838" stroke-width="5"/>
-  <path d="M32 65H64M48 54V65M38 65V72M58 65V72" stroke="#202838" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="36" cy="40" r="3.5" fill="#202838"/>
-  <circle cx="48" cy="40" r="3.5" fill="#202838"/>
-  <circle cx="60" cy="40" r="3.5" fill="#202838"/>
+  <!-- Paper stack -->
+  <rect x="14" y="58" width="52" height="9" rx="4" fill="#202838" opacity="0.3"/>
+  <rect x="18" y="47" width="52" height="9" rx="4" fill="#202838" opacity="5"/>
+  <rect x="14" y="36" width="52" height="18" rx="5" fill="#202838"/>
+  <!-- Lines on top paper -->
+  <line x1="23" y1="43" x2="56" y2="43" stroke="#E2BF5A" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="23" y1="49" x2="45" y2="49" stroke="#E2BF5A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Rocket -->
+  <path d="M68 16 C68 16 78 18 78 30 L72 36 L62 26 Z" fill="#202838"/>
+  <circle cx="70" cy="28" r="3" fill="#E2BF5A"/>
+  <path d="M62 26 L58 34 L66 32 Z" fill="#202838" opacity="0.7"/>
+  <path d="M72 36 L74 44 L66 40 Z" fill="#202838" opacity="0.7"/>
+  <path d="M60 34 L56 38" stroke="#c6a54b" stroke-width="2" stroke-linecap="round"/>
 </svg>

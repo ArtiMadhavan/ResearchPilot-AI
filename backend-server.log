@@ -1,0 +1,39 @@
+INFO:     Started server process [28688]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:39842 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28768 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3261 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23676 - "POST /api/index/rebuild HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3264 - "GET /api/intelligence/gaps?top_k=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22807 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22808 - "GET /api/intelligence/gaps?top_k=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29883 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11325 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7511 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27074 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37978 - "GET /api/papers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53659 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33822 - "GET /api/papers/e291ad31-87c2-4a04-98ac-05595f860db8/file HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11153 - "GET /api/search?q=findings+evidence+results+conclusions&top_k=4&paper_id=e291ad31-87c2-4a04-98ac-05595f860db8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33822 - "GET /api/papers/e291ad31-87c2-4a04-98ac-05595f860db8/file HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11153 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7966 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25354 - "GET /api/search?q=findings+evidence+results+conclusions&top_k=4&paper_id=e291ad31-87c2-4a04-98ac-05595f860db8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25354 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55527 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11909 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59376 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46687 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37015 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35561 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40972 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44488 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12250 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35992 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63172 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29101 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11750 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1228 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59762 - "GET /healthz HTTP/1.1" 200 OK
