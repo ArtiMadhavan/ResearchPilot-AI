@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "cd artifacts/researchpilot && npm install --legacy-peer-deps && npm run build",
+  "outputDirectory": "artifacts/researchpilot/dist/public",
+  "installCommand": "echo 'skip root install'",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "BASE_PATH": "/",
+    "PORT": "3000"
+  }
+}
