@@ -6,7 +6,6 @@ import { defineConfig } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// PORT and BASE_PATH are optional — safe defaults for Vercel / CI builds
 const port = Number(process.env.PORT ?? '3000');
 const basePath = process.env.BASE_PATH ?? '/';
 
@@ -17,10 +16,14 @@ export default defineConfig({
     tailwindcss(),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json'],
+    alias: [
+      { find: '@/lib/utils', replacement: path.resolve(__dirname, 'src/lib/utils.ts') },
+      { find: '@/lib',        replacement: path.resolve(__dirname, 'src/lib') },
+      { find: '@/hooks',      replacement: path.resolve(__dirname, 'src/hooks') },
+      { find: '@/components', replacement: path.resolve(__dirname, 'src/components') },
+      { find: '@/pages',      replacement: path.resolve(__dirname, 'src/pages') },
+      { find: '@',            replacement: path.resolve(__dirname, 'src') },
+    ],
     dedupe: ['react', 'react-dom'],
   },
   root: __dirname,
