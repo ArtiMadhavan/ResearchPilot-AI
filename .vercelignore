@@ -1,0 +1,18 @@
+# Ignore root workspace files - Vercel builds from artifacts/researchpilot only
+pnpm-workspace.yaml
+pnpm-lock.yaml
+node_modules
+backend
+lib
+scripts
+artifacts/api-server
+artifacts/mockup-sandbox
+*.db
+*.log
+.env
+.env.*
+!.env.example
+DOCUMENTATION.md
+DOCUMENTATION.pdf
+generate_pdf.py
+render.yaml
