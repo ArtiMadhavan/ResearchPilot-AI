@@ -1,10 +1,10 @@
 {
   "version": 2,
+  "rootDirectory": "artifacts/researchpilot",
+  "framework": "vite",
   "buildCommand": "npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "dist/public",
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": null,
-  "rootDirectory": "artifacts/researchpilot",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
